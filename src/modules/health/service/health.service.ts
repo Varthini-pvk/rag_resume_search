@@ -1,6 +1,7 @@
 import { ILogger } from '../../shared/logger';
 import { ServiceError } from '../../shared/errors';
 import { IHealthService, HealthStatus, ComponentHealth } from '../interface/health.interface';
+import { IDBService } from '../../db';
 
 /**
  * Health check service - monitors system status
@@ -8,7 +9,10 @@ import { IHealthService, HealthStatus, ComponentHealth } from '../interface/heal
 export class HealthService implements IHealthService {
   private startTime = Date.now();
 
-  constructor(private readonly logger: ILogger) {}
+  constructor(
+    private readonly logger: ILogger,
+    private readonly dbService?: IDBService
+  ) {}
 
   async getHealthStatus(): Promise<HealthStatus> {
     const startTime = Date.now();
@@ -21,13 +25,22 @@ export class HealthService implements IHealthService {
         status: 'healthy',
         latency: Date.now() - startTime,
       };
+      const mongodbHealth = this.dbService
+        ? await this.dbService.checkHealth()
+        : undefined;
+
+      let overallStatus: HealthStatus['status'] = 'healthy';
+      if (mongodbHealth?.status === 'unhealthy') {
+        overallStatus = 'degraded';
+      }
 
       const status: HealthStatus = {
-        status: 'healthy',
+        status: overallStatus,
         timestamp: new Date().toISOString(),
         uptime,
         components: {
           app: appHealth,
+          ...(mongodbHealth ? { mongodb: mongodbHealth } : {}),
         },
         version: process.env.npm_package_version || '0.1.0',
       };

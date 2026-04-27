@@ -4,9 +4,10 @@ import helmet from 'helmet';
 import { v4 as uuidv4 } from 'uuid';
 import pinoHttp from 'pino-http';
 
-import config, { AppConfig } from './config';
-import { getLogger, ILogger } from './modules/shared/logger';
+import { AppConfig } from './config';
+import { getLogger } from './modules/shared/logger';
 import { createErrorResponse, ServiceError } from './modules/shared/errors';
+import { DBModule } from './modules/db';
 import { HealthModule } from './modules/health';
 
 /**
@@ -23,7 +24,7 @@ declare global {
 /**
  * Create Express application
  */
-export function createApp(cfg: AppConfig): Express {
+export function createApp(cfg: AppConfig, dbModule: DBModule): Express {
   const app = express();
   const logger = getLogger({ level: cfg.app.logLevel });
 
@@ -73,12 +74,13 @@ export function createApp(cfg: AppConfig): Express {
   // ============================================
 
   // Health module
-  const healthModule = new HealthModule(logger);
+  const healthModule = new HealthModule(logger, dbModule.getService());
   app.use('/api/v1/health', healthModule.createRoutes());
+  app.use('/api/v1/db', dbModule.createRoutes());
 
   logger.info({
     action: 'modules_registered',
-    modules: ['health'],
+    modules: ['health', 'db'],
   });
 
   // ============================================
@@ -86,7 +88,7 @@ export function createApp(cfg: AppConfig): Express {
   // ============================================
 
   // Root endpoint
-  app.get('/', (req: Request, res: Response) => {
+  app.get('/', (_req: Request, res: Response) => {
     res.json({
       service: 'Resume Search RAG',
       version: '0.1.0',
@@ -118,7 +120,7 @@ export function createApp(cfg: AppConfig): Express {
   // Error Handler (Last)
   // ============================================
 
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     const requestId = req.correlationId;
 
     // Log error

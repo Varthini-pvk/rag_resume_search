@@ -1,4 +1,4 @@
-import { HealthStatus } from './health.interface';
+import { HealthStatus } from '../interface/health.interface';
 
 /**
  * Health check response DTO

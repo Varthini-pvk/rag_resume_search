@@ -1,5 +1,6 @@
 import config from './config';
 import { getLogger } from './modules/shared/logger';
+import { DBModule } from './modules/db';
 import { createApp } from './app';
 
 const logger = getLogger({ level: config.app.logLevel });
@@ -15,8 +16,11 @@ async function bootstrap(): Promise<void> {
       port: config.app.port,
     });
 
+    const dbModule = new DBModule(config, logger);
+    await dbModule.getService().connect();
+
     // Create Express app
-    const app = createApp(config);
+    const app = createApp(config, dbModule);
 
     // Start server
     const server = app.listen(config.app.port, () => {
@@ -35,6 +39,8 @@ async function bootstrap(): Promise<void> {
         signal,
         timestamp: new Date().toISOString(),
       });
+
+      await dbModule.getService().disconnect();
 
       server.close(() => {
         logger.info({

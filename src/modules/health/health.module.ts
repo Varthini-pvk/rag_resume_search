@@ -1,7 +1,8 @@
-import { ILogger } from '../../shared/logger';
-import { HealthService } from '../service/health.service';
-import { HealthController } from '../controller/health.controller';
-import { createHealthRoutes } from '../route/health.route';
+import { ILogger } from '../shared/logger';
+import { IDBService } from '../db';
+import { HealthService } from './service/health.service';
+import { HealthController } from './controller/health.controller';
+import { createHealthRoutes } from './route/health.route';
 
 /**
  * Health module factory
@@ -10,8 +11,8 @@ export class HealthModule {
   private service: HealthService;
   private controller: HealthController;
 
-  constructor(private readonly logger: ILogger) {
-    this.service = new HealthService(logger);
+  constructor(logger: ILogger, dbService?: IDBService) {
+    this.service = new HealthService(logger, dbService);
     this.controller = new HealthController(this.service);
   }
 
