@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS
+Thumbs.db
+
+# Runtime data
+.pids
+*.seed
+*.pid.lock
+
+# Cache
+.eslintcache
+.jest-cache/
+.husky/_
+
+# Temporary files
+tmp/
+temp/
