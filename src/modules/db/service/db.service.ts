@@ -28,11 +28,16 @@ export class DBService implements IDBService {
       await this.client.connect();
       this.db = this.client.db();
       this.connected = true;
+      const targetInfo = this.getConnectionTargetInfo();
 
       this.logger.info({
         action: 'db_connected',
         module: 'db',
+        database: this.db.databaseName,
+        host: targetInfo.host,
+        protocol: targetInfo.protocol,
         duration: Date.now() - startTime,
+        message: `MongoDB connected (${this.db.databaseName} @ ${targetInfo.host})`,
       });
     } catch (error) {
       this.connected = false;
@@ -105,5 +110,20 @@ export class DBService implements IDBService {
     }
 
     return this.db;
+  }
+
+  private getConnectionTargetInfo(): { host: string; protocol: string } {
+    try {
+      const url = new URL(this.config.mongodb.uri);
+      return {
+        host: url.host || 'unknown-host',
+        protocol: url.protocol.replace(':', '') || 'mongodb',
+      };
+    } catch {
+      return {
+        host: 'unknown-host',
+        protocol: 'mongodb',
+      };
+    }
   }
 }
